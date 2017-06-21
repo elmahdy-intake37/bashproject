@@ -1,0 +1,508 @@
+#! /bin/bash
+
+echo ' ';
+blue='\033[0;34m'
+nc='\033[0m'
+echo -e "${blue} DBMS ${nc}";
+while true 
+	do
+		echo "*****************************************************"
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}";
+		echo ' ';
+		echo 'Welcome to simple DBMS please select from menu what you want ?';
+		echo 'Press c to create table' ;
+		echo 'Press i to Insert into table';
+		echo 'Press d to delete from table';
+		echo 'Press s to select * from table';
+		echo 'Press r to retrieve spesific records';echo 'Press o to drop table';
+		echo 'Press t to trankate table';
+		echo 'Press a to alter table';echo 'Press show to show tables';
+		echo 'Press u to update ';
+		echo 'Press e to exit';
+		echo -e "${nc}"
+		echo "******************************************************"
+    read x
+
+
+
+#function create 
+create(){
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo 'Enter Table Name:';
+		echo -e "${nc}"
+		read table;
+		echo $table >> tables;
+
+if test -e ./$table
+then 
+		red='\033[0;31m' 
+		 nc='\033[0m' 
+		echo -e "${red}  Faild already Exist ${nc}" ;
+else
+touch $table;
+sudo chmod u+rw ./$table;
+sudo touch meta$table;
+sudo chmod 777 ./meta$table;
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo 'Enter Number of column';
+		echo -e "${nc}"
+read col;
+myvar=0
+#cols=0;rows=0;
+sudo touch attrcout$table
+sudo chmod 777 attrcout$table
+		
+		echo $col > attrcout$table
+
+while test $myvar -lt $col
+do
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo Enter column number $((myvar+1)) name; 
+		echo -e "${nc}"
+		read attr
+		echo -n $attr >> ./$table " ";
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo choose column number $((myvar+1)) datatype Press i for integer , Press s 			for string;
+		echo -e "${nc}" 
+read dtype
+case $dtype in
+i ) echo -n i >> ./meta$table " ";;
+s ) echo -n s >> ./meta$table " ";;
+esac
+sudo touch tintemp
+sudo chmod 777 tintemp
+myvar=$(( myvar+1 ))
+done
+		green='\033[1;32m'
+		nc='\033[0m'
+		echo ' ';
+		echo -e "${green}Table  Successfully ${nc}"
+cat meta$table | tr -s " " > tintemp
+sudo rm meta$table
+sudo touch meta$table
+sudo chmod 777 meta$table
+cat tintemp > meta$table
+sudo rm tintemp
+fi
+}
+
+
+
+#Function insert 
+insert(){
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo 'insert table name'
+		echo -e "${nc}"
+read table 
+if test -e ./$table
+then
+read attributes < $table
+read datatypes < meta$table
+dtarr={$datatypes};
+myarr={$attributes};
+
+		echo >> ./$table;
+
+read myatrcounter < attrcout$table
+minecounter=1
+	for attr in $myarr
+	do
+
+sudo touch mycontainer
+sudo chmod 777 mycontainer
+cut -d " " -f $minecounter ./meta$table > mycontainer
+read dt < mycontainer
+testflag=0
+	
+case $dt in
+i ) while test $testflag -eq 0
+do
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo 'enter value of' $attr; 
+		echo -e "${nc}"
+read val
+if test $val -gt 0
+then 
+grep $val ./$table > dummy
+if test $? -eq 0
+then
+		red='\033[0;31m' 
+		 nc='\033[0m' 
+		echo -e "${red} Duplicated Primary Key , Please Enter another one ${nc}"
+else
+		echo -n $val >> ./$table " "; 
+testflag=1;	
+sudo rm dummy;	
+fi		
+else 
+		red='\033[0;31m' 
+		 nc='\033[0m' 
+		echo -e "${red}This is not a number, try again.. ${nc}";
+fi 
+done ;;
+s ) blue='\033[0;34m'
+nc='\033[0m'
+		echo -e "${blue}"
+		echo 'enter value of' $attr; 
+		echo -e "${nc}"
+		read val;
+		echo -n $val >> ./$table " ";;
+esac
+sudo rm mycontainer
+minecounter=$(($minecounter+1))
+done
+		green='\033[1;32m'
+		nc='\033[0m'
+		echo ' ';
+		echo -e "${green} Successfully   ${nc}"
+else
+		red='\033[0;31m' ; nc='\033[0m' ; echo -e "${red}Insertion Faild, not exist 			${nc}" ;
+fi
+}
+
+
+
+# Select function 
+selectfunc(){
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo 'Enter table name';
+		echo -e "${nc}"
+read table;
+if test -e ./$table
+then
+		echo " "
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+cat ./$table;
+		echo -e "${nc}"
+		echo " "
+else
+		red='\033[0;31m' 
+		nc='\033[0m' 
+		echo -e "${red}Selection Faild ,is not exist ${nc}" ;
+fi
+}
+
+
+
+# trankate func
+trancate(){
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo "Enter the table name";
+		echo -e "${nc}"
+read table
+if test -e ./$table
+then
+read attributes < $table;
+sudo rm ./$table;
+sudo touch ./$table;
+sudo chmod 777 ./$table;
+		echo $attributes > ./$table;
+		red='\033[1;32m' 
+		 nc='\033[0m' 
+		echo -e "${red} Table empty   ${nc}" ; 
+else
+
+		red='\033[0;31m'  
+	       	nc='\033[0m' 
+		 echo -e "${red}Trancate Faild,is not exist ${nc}" ;
+fi
+}
+
+
+
+
+# drop function  
+drop(){
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo "Enter the table name";
+		echo -e "${nc}"
+read table
+if test -e ./$table
+then
+sudo rm ./$table;
+sudo rm ./meta$table;
+sudo rm ./attrcout$table;
+sudo touch tablestemp;
+sudo chmod 777 tablestemp;
+grep -v $table tables > tablestemp;
+sudo rm tables
+sudo touch tables
+sudo chmod 777 tables
+cat tablestemp > tables
+sudo rm tablestemp;
+		
+		red='\033[1;32m' 
+		nc='\033[0m'
+		 echo -e "${red} Table Removed  ${nc}" 
+else
+		red='\033[0;31m' 
+		nc='\033[0m' 
+		echo -e "${red}Drop Faild , is not exist ${nc}" ;
+fi
+}
+
+
+
+
+#alter table 
+alter(){
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo "Enter table name";
+		echo -e "${nc}"
+read table;
+if test -e ./$table
+then
+read attributes < $table;
+read meta < meta$table;
+metarr=$meta;
+temp=0;
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+echo "Enter the number of attributes";
+echo -e "${nc}"
+read currattr < ./attrcout$table
+read attrnum;
+myarray=$attributes
+while test $temp -lt $attrnum
+do
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo enter atrribute number $(( temp+1 )) name;
+		echo -e "${nc}"
+read newattr
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo "select attribute data type , press i for int , s for string"
+		echo -e "${nc}"
+read tdt
+metarr+=" "$tdt
+echo ${metarr[*]} > meta$table;
+myarray+=" "$newattr
+temp=$(( temp+1 ))
+done
+sudo echo $((currattr+attrnum)) > ./attrcout$table
+sudo touch tempfile;
+sudo chmod 777 tempfile;
+sed '1d' ./$table > ./tempfile;
+sudo rm ./$table;
+sudo touch ./$table;
+sudo chmod 777 ./$table;
+echo ${myarray[*]} > ./$table;
+cat ./tempfile >> ./$table;
+sudo rm ./tempfile;
+
+		green='\033[1;32m'
+		nc='\033[0m'
+		echo ' ';
+		echo -e "${green}Table Successfully ${nc}"
+else
+		red='\033[0;31m' 
+		nc='\033[0m' 
+		 echo -e "${red}Alter Faild, is not exist ${nc}" ;
+fi
+}
+
+
+
+
+# select * from table where id 
+retrievecond(){
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo 'Enter Table Name';
+		echo -e "${nc}"
+read table;
+if test -e ./$table
+then
+		blue='\033[0;34m'
+		nc='\033[0m'
+		echo -e "${blue}"
+		echo 'Enter record Id';
+		echo -e "${nc}"
+read recid;
+echo " "
+read attr < $table
+
+		red='\033[1;31m' 
+		 nc='\033[0m' 
+		 echo -e "${red}$attr ${nc}";
+
+cat ./$table | grep -w "^$recid"
+else
+		red='\033[0;31m' 
+		 nc='\033[0m' 
+		 echo -e "${red}Retrieve Faild, is not exist ${nc}" ;
+fi
+}
+
+#update (achyk 3lyha 3lshan mnsash )
+
+update(){
+			blue='\033[0;34m'
+			nc='\033[0m'
+			echo -e "${blue}"
+			echo 'Enter Table Name';
+			echo -e "${nc}"
+			read table;
+if test -e ./$table
+then
+			blue='\033[0;34m'
+			nc='\033[0m'
+			echo -e "${blue}"
+			echo 'Enter record Id';
+			echo -e "${nc}"
+			read recid;
+			echo " "
+read attr < $table
+			blue='\033[0;34m'
+			nc='\033[0m'
+			echo -e "${blue}"
+			echo " enter col name";
+			read name
+			echo " enter value "
+			read val
+			echo -e "${nc}"
+first=$( head -n1 $table )
+echo $first | awk -F " " '{n=split($first1,arr," ")}; END { for (i in arr) print arr[i]}' >tempo
+
+readarray cols < tempo
+ind=1;
+for col in ${cols[*]}
+do
+
+     if [ $col == $name ]
+	then
+	index=$ind
+	fi 
+ind=$((ind+1))
+done  
+ 	while read line
+	do 
+             firstfeild= `echo $line | cut -d " " -f1`
+                if [ $firstfeild == $recid ]
+       then    
+
+             x= `echo $line | cut -d " " -f $index`
+		echo "${line//$x/$new}" >> tem
+           fi
+                    echo $line >> tem
+		done < $table
+
+cat tem > $table
+ 
+fi
+}
+
+
+# delete a record where id = value
+deleterec(){
+			blue='\033[0;34m'
+			nc='\033[0m'
+			echo -e "${blue}"
+			echo 'Enter Table Name';
+			echo -e "${nc}"
+read table;
+if test -e ./$table
+then
+			blue='\033[0;34m'
+			nc='\033[0m'
+			echo -e "${blue}"
+			echo 'Enter record Id';
+			echo -e "${nc}"
+read recid;
+read attr < $table
+myattrarray=$attr;
+sudo touch ./mytempfile
+sudo chmod 777 ./mytempfile
+echo ${myattrarray[*]} > ./mytempfile;
+delrec=$((recid+1))
+grep -v -w "^$recid" ./$table > ./mytempfile
+sudo rm ./$table;
+sudo touch ./$table
+sudo chmod 777 ./$table 
+cat ./mytempfile > ./$table
+sudo rm ./mytempfile
+			echo ' ';
+			red='\033[1;32m' 
+			 nc='\033[0m' 
+			 echo -e "${red} Record Deleted  ${nc}";
+			echo " "
+else
+			red='\033[0;31m'  
+			nc='\033[0m'  
+			echo -e "${red}Delete Faild , is not exist ${nc}" ;
+fi
+}
+
+
+
+#show tables
+showtables(){
+blue='\033[0;34m'
+nc='\033[0m'
+green='\033[1;32m'
+red='\033[1;31m' 
+echo -e "${red}**********${nc}";
+echo -e "${green}Tables:${nc}";
+echo -e "${red}**********${nc}";
+echo -e "${blue}"
+cat ./tables;
+echo -e "${nc}"
+echo -e "${red}**********${nc}";
+echo " "
+}
+
+
+
+
+
+# Main 
+case $x in
+c ) create ;;  
+i ) insert ;;
+a ) alter ;;
+d ) deleterec ;;
+s ) selectfunc ;;
+r ) retrievecond ;;
+t ) trancate ;;
+show ) showtables ;;
+o ) drop ;;
+u) update ;; 
+e ) red='\033[1;31m' ; 
+blue='\033[0;34m'
+nc='\033[0m' 
+echo " "; 
+echo " ";
+echo -e "${blue}Ahmed Saad - OS - ${nc}" ; 
+echo " ";
+echo -e "${red}Exite ${nc}" ; echo " "; echo " "; break ;; 
+esac
+done
